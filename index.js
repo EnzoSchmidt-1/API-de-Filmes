@@ -62,7 +62,7 @@ app.get('/api/filmes/:id', (req, res) => {
 app.post('/api/filmes', (req, res) => {
     try {
         // 1. Pegar dados do body
-        const { titulo, ano, diretor, genero, nota } = req.body;
+        const { titulo, ano, diretor, genero, nota =null} = req.body;
         
         // 2. Validações (igual antes!)
         if (!titulo || !ano || !diretor || !genero) {
@@ -98,6 +98,33 @@ app.post('/api/filmes', (req, res) => {
     }
 });
 
+// DELETE
+app.delete('/api/filmes/:id', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const stmt = db.prepare('DELETE FROM filmes WHERE id = ?');
+        stmt.run(id);
+        res.json({ mensagem: 'Filme deletado com sucesso' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ erro: 'Erro ao deletar filme' });
+    }
+});
+
+//PUT - update total
+app.put('/api/filmes/:id', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { titulo, ano, diretor, genero, nota } = req.body;
+        const stmt = db.prepare('UPDATE filmes SET titulo = ?, ano = ?, diretor = ?, genero = ?, nota = ? WHERE id = ?');
+        stmt.run(titulo, ano, diretor, genero, nota, id);
+        const filmeAtualizado = db.prepare('SELECT * FROM filmes WHERE id = ?').get(id);
+        res.json(filmeAtualizado);
+    }catch (error) {
+        console.error(error);
+        res.status(500).json({ erro: 'Erro ao atualizar filme' });
+        }
+});
 //----------------------------------------------------------------------
 
 app.listen(PORT, () => {
